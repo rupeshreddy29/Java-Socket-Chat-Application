@@ -119,5 +119,25 @@ public class ChatServer {
         return users.toString();
 
     }
+    public static ClientHandler findClient(String username) {
+
+        synchronized (clients) {
+
+            for (ClientHandler client : clients) {
+
+                if (client.getUsername() != null &&
+                    client.getUsername().equalsIgnoreCase(username)) {
+
+                    return client;
+
+                }
+
+            }
+
+        }
+
+        return null;
+
+    }
 
 }

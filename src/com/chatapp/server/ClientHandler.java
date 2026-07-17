@@ -57,6 +57,48 @@ public class ClientHandler implements Runnable {
                 System.out.println(
                         "[" + Thread.currentThread().getName() + "] "
                                 + message);
+
+                if (message.startsWith("/pm ")) {
+
+                    String[] parts = message.split(" ", 3);
+
+                    if (parts.length < 3) {
+
+                        writer.println(
+                            "[SERVER] Usage: /pm <username> <message>"
+                        );
+
+                        continue;
+
+                    }
+
+                    String receiver = parts[1];
+                    String privateMessage = parts[2];
+
+                    ClientHandler target =
+                            ChatServer.findClient(receiver);
+
+                    if (target == null) {
+
+                        writer.println(
+                            "[SERVER] User not found."
+                        );
+
+                        continue;
+
+                    }
+
+                    target.sendMessage(
+                        "[PRIVATE] " + username + ": " + privateMessage
+                    );
+
+                    writer.println(
+                        "[PRIVATE to " + receiver + "] " + privateMessage
+                    );
+
+                    continue;
+
+                }
                 if (message.equalsIgnoreCase("/users")) {
 
                     writer.println(ChatServer.getOnlineUsers());
