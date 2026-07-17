@@ -29,7 +29,8 @@ public class ChatServer {
 
                 System.out.println(
                         "New client connected: "
-                                + clientSocket.getInetAddress().getHostAddress());
+                                + clientSocket.getInetAddress().getHostAddress()
+                );
 
                 ClientHandler handler = new ClientHandler(clientSocket);
 
@@ -41,11 +42,14 @@ public class ChatServer {
 
         } catch (IOException e) {
 
-            System.out.println("Server Error: " + e.getMessage());
+            System.out.println(
+                    "Server Error: " + e.getMessage()
+            );
 
         }
     }
 
+    // Broadcast message to every client except the sender
     public static void broadcast(String message, ClientHandler sender) {
 
         synchronized (clients) {
@@ -53,7 +57,9 @@ public class ChatServer {
             for (ClientHandler client : clients) {
 
                 if (client != sender) {
+
                     client.sendMessage(message);
+
                 }
 
             }
@@ -62,9 +68,56 @@ public class ChatServer {
 
     }
 
+    // Broadcast message to every connected client
+    public static void broadcastToAll(String message) {
+
+        synchronized (clients) {
+
+            for (ClientHandler client : clients) {
+
+                client.sendMessage(message);
+
+            }
+
+        }
+
+    }
+
+    // Remove disconnected client
     public static void removeClient(ClientHandler client) {
 
         clients.remove(client);
 
     }
+    public static String getOnlineUsers() {
+
+        StringBuilder users = new StringBuilder();
+
+        users.append("\n========= ONLINE USERS =========\n\n");
+
+        int count = 1;
+
+        synchronized (clients) {
+
+            for (ClientHandler client : clients) {
+
+                if (client.getUsername() != null) {
+
+                    users.append(count++)
+                        .append(". ")
+                        .append(client.getUsername())
+                        .append("\n");
+
+                }
+
+            }
+
+        }
+
+        users.append("\n===============================\n");
+
+        return users.toString();
+
+    }
+
 }

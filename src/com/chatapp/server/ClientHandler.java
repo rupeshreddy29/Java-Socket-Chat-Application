@@ -45,6 +45,11 @@ public class ClientHandler implements Runnable {
                     "[SERVER] Welcome " + username + "!"
             );
 
+            ChatServer.broadcast(
+                    "[SERVER] " + username + " joined the chat.",
+                    this
+            );
+
             String message;
 
             while ((message = reader.readLine()) != null) {
@@ -52,7 +57,13 @@ public class ClientHandler implements Runnable {
                 System.out.println(
                         "[" + Thread.currentThread().getName() + "] "
                                 + message);
+                if (message.equalsIgnoreCase("/users")) {
 
+                    writer.println(ChatServer.getOnlineUsers());
+
+                    continue;
+
+                }
                 if (message.equalsIgnoreCase("/exit")) {
 
                     writer.println("[SERVER] Goodbye!");
@@ -60,7 +71,10 @@ public class ClientHandler implements Runnable {
 
                 }
 
-                ChatServer.broadcast(message, this);
+                ChatServer.broadcast(
+                        username + ": " + message,
+                        this
+                );
 
             }
 
@@ -70,6 +84,11 @@ public class ClientHandler implements Runnable {
                     "Client Error: " + e.getMessage());
 
         } finally {
+
+            ChatServer.broadcast(
+                    "[SERVER] " + username + " left the chat.",
+                    this
+            );
 
             ChatServer.removeClient(this);
 
