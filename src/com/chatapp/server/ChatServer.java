@@ -139,5 +139,25 @@ public class ChatServer {
         return null;
 
     }
+    public static boolean usernameExists(String username) {
+
+        synchronized (clients) {
+
+            for (ClientHandler client : clients) {
+
+                if (client.getUsername() != null &&
+                    client.getUsername().equalsIgnoreCase(username)) {
+
+                    return true;
+
+                }
+
+            }
+
+        }
+
+        return false;
+
+    }
 
 }

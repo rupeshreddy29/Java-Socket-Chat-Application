@@ -34,11 +34,36 @@ public class ClientHandler implements Runnable {
 
             writer.println("[SERVER] Connected successfully.");
             
-            writer.println("Enter your username:");
-            username = reader.readLine();
+            while (true) {
+
+                writer.println("Enter your username:");
+
+                username = reader.readLine();
+
+                if (username == null || username.trim().isEmpty()) {
+
+                    writer.println("[SERVER] Username cannot be empty.");
+
+                    continue;
+
+                }
+
+                if (ChatServer.usernameExists(username)) {
+
+                    writer.println(
+                        "[SERVER] Username already taken. Try another."
+                    );
+
+                    continue;
+
+                }
+
+                break;
+
+            }
 
             System.out.println(
-                    "Username Registered: " + username
+                "Username Registered: " + username
             );
 
             writer.println(
