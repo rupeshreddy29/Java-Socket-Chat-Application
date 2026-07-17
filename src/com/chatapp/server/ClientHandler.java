@@ -1,5 +1,6 @@
 package com.chatapp.server;
 
+import com.chatapp.util.ChatLogger;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -12,6 +13,7 @@ public class ClientHandler implements Runnable {
 
     private BufferedReader reader;
     private PrintWriter writer;
+
     private String username;
 
     public ClientHandler(Socket socket) {
@@ -26,23 +28,38 @@ public class ClientHandler implements Runnable {
         try {
 
             reader = new BufferedReader(
-                    new InputStreamReader(socket.getInputStream()));
+                    new InputStreamReader(
+                            socket.getInputStream()));
 
             writer = new PrintWriter(
                     socket.getOutputStream(),
                     true);
 
             writer.println("[SERVER] Connected successfully.");
-            
+
+            // -----------------------------
+            // Username Registration
+            // -----------------------------
+
             while (true) {
 
                 writer.println("Enter your username:");
 
                 username = reader.readLine();
 
-                if (username == null || username.trim().isEmpty()) {
+                if (username == null) {
 
-                    writer.println("[SERVER] Username cannot be empty.");
+                    return;
+
+                }
+
+                username = username.trim();
+
+                if (username.isEmpty()) {
+
+                    writer.println(
+                            "[SERVER] Username cannot be empty."
+                    );
 
                     continue;
 
@@ -51,7 +68,7 @@ public class ClientHandler implements Runnable {
                 if (ChatServer.usernameExists(username)) {
 
                     writer.println(
-                        "[SERVER] Username already taken. Try another."
+                            "[SERVER] Username already taken. Try another."
                     );
 
                     continue;
@@ -63,8 +80,11 @@ public class ClientHandler implements Runnable {
             }
 
             System.out.println(
-                "Username Registered: " + username
+                    "Username Registered : " + username
             );
+            ChatServer.addClient(this);
+
+            ChatLogger.log(username + " joined the chat.");
 
             writer.println(
                     "[SERVER] Welcome " + username + "!"
@@ -75,22 +95,59 @@ public class ClientHandler implements Runnable {
                     this
             );
 
+            // -----------------------------
+            // Chat Loop
+            // -----------------------------
+
             String message;
 
             while ((message = reader.readLine()) != null) {
 
+                message = message.trim();
+
+                if (message.isEmpty()) {
+
+                    continue;
+
+                }
+
                 System.out.println(
-                        "[" + Thread.currentThread().getName() + "] "
-                                + message);
+                        "[" + username + "] : " + message
+                );
+
+                // Exit
+
+                if (message.equalsIgnoreCase("/exit")) {
+
+                    writer.println("[SERVER] Goodbye!");
+
+                    break;
+
+                }
+
+                // Online Users
+
+                if (message.equalsIgnoreCase("/users")) {
+
+                    writer.println(
+                            ChatServer.getOnlineUsers()
+                    );
+
+                    continue;
+
+                }
+
+                // Private Message
 
                 if (message.startsWith("/pm ")) {
 
-                    String[] parts = message.split(" ", 3);
+                    String[] parts =
+                            message.split(" ", 3);
 
                     if (parts.length < 3) {
 
                         writer.println(
-                            "[SERVER] Usage: /pm <username> <message>"
+                                "[SERVER] Usage : /pm <username> <message>"
                         );
 
                         continue;
@@ -106,7 +163,7 @@ public class ClientHandler implements Runnable {
                     if (target == null) {
 
                         writer.println(
-                            "[SERVER] User not found."
+                                "[SERVER] User not found."
                         );
 
                         continue;
@@ -114,32 +171,41 @@ public class ClientHandler implements Runnable {
                     }
 
                     target.sendMessage(
-                        "[PRIVATE] " + username + ": " + privateMessage
+                            "[PRIVATE] "
+                                    + username
+                                    + " : "
+                                    + privateMessage
                     );
 
                     writer.println(
-                        "[PRIVATE to " + receiver + "] " + privateMessage
+                            "[PRIVATE to "
+                                    + receiver
+                                    + "] "
+                                    + privateMessage
+                    );
+
+                    ChatLogger.log(
+                            "[PRIVATE] "
+                                    + username
+                                    + " -> "
+                                    + receiver
+                                    + " : "
+                                    + privateMessage
                     );
 
                     continue;
 
                 }
-                if (message.equalsIgnoreCase("/users")) {
 
-                    writer.println(ChatServer.getOnlineUsers());
+                // Public Chat
 
-                    continue;
+                String chatMessage =
+                        username + " : " + message;
 
-                }
-                if (message.equalsIgnoreCase("/exit")) {
-
-                    writer.println("[SERVER] Goodbye!");
-                    break;
-
-                }
+                ChatLogger.log(chatMessage);
 
                 ChatServer.broadcast(
-                        username + ": " + message,
+                        chatMessage,
                         this
                 );
 
@@ -148,16 +214,28 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
 
             System.out.println(
-                    "Client Error: " + e.getMessage());
+                    "Client Error : "
+                            + e.getMessage()
+            );
 
         } finally {
 
-            ChatServer.broadcast(
-                    "[SERVER] " + username + " left the chat.",
-                    this
-            );
-
             ChatServer.removeClient(this);
+
+            if (username != null) {
+
+                ChatLogger.log(
+                        username + " left the chat."
+                );
+
+                ChatServer.broadcast(
+                        "[SERVER] "
+                                + username
+                                + " left the chat.",
+                        this
+                );
+
+            }
 
             try {
 
@@ -165,24 +243,22 @@ public class ClientHandler implements Runnable {
 
             } catch (IOException e) {
 
-                    System.out.println(
-                            "Error closing socket: " + e.getMessage()
-                    );
+                System.out.println(
+                        "Error closing socket : "
+                                + e.getMessage()
+                );
 
-                }
+            }
 
             System.out.println(
-                    Thread.currentThread().getName()
-                            + " disconnected.");
+                    "Client Disconnected : "
+                            + username
+            );
 
         }
 
     }
-    public String getUsername() {
 
-        return username;
-
-    }
     public void sendMessage(String message) {
 
         if (writer != null) {
@@ -190,6 +266,12 @@ public class ClientHandler implements Runnable {
             writer.println(message);
 
         }
+
+    }
+
+    public String getUsername() {
+
+        return username;
 
     }
 

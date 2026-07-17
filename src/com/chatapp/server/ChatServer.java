@@ -9,17 +9,21 @@ import java.util.List;
 
 public class ChatServer {
 
+    // Server Port
     public static final int PORT = 5000;
 
+    // Thread-safe list of connected clients
     private static final List<ClientHandler> clients =
             Collections.synchronizedList(new ArrayList<>());
 
     public static void main(String[] args) {
 
-        System.out.println("====================================");
-        System.out.println("     JAVA CHAT SERVER STARTED");
-        System.out.println("====================================");
-        System.out.println("Listening on port: " + PORT);
+        System.out.println("========================================");
+        System.out.println("        JAVA SOCKET CHAT SERVER");
+        System.out.println("========================================");
+        System.out.println("Server started successfully.");
+        System.out.println("Listening on Port : " + PORT);
+        System.out.println();
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
 
@@ -28,28 +32,40 @@ public class ChatServer {
                 Socket clientSocket = serverSocket.accept();
 
                 System.out.println(
-                        "New client connected: "
+                        "New Client Connected : "
                                 + clientSocket.getInetAddress().getHostAddress()
                 );
 
                 ClientHandler handler = new ClientHandler(clientSocket);
 
-                clients.add(handler);
 
                 Thread thread = new Thread(handler);
+
                 thread.start();
+
+                System.out.println(
+                        "Assigned Thread : "
+                                + thread.getName()
+                );
+
+                System.out.println("----------------------------------------");
+
             }
 
         } catch (IOException e) {
 
             System.out.println(
-                    "Server Error: " + e.getMessage()
+                    "Server Error : " + e.getMessage()
             );
 
         }
+
     }
 
-    // Broadcast message to every client except the sender
+    /*
+     * Broadcast message to everyone
+     * except sender
+     */
     public static void broadcast(String message, ClientHandler sender) {
 
         synchronized (clients) {
@@ -68,7 +84,9 @@ public class ChatServer {
 
     }
 
-    // Broadcast message to every connected client
+    /*
+     * Broadcast to every client
+     */
     public static void broadcastToAll(String message) {
 
         synchronized (clients) {
@@ -83,17 +101,29 @@ public class ChatServer {
 
     }
 
-    // Remove disconnected client
+    /*
+     * Remove disconnected client
+     */
     public static void removeClient(ClientHandler client) {
 
         clients.remove(client);
 
     }
+    public static void addClient(ClientHandler client) {
+
+        clients.add(client);
+
+    }
+
+    /*
+     * Return list of online users
+     */
     public static String getOnlineUsers() {
 
-        StringBuilder users = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
 
-        users.append("\n========= ONLINE USERS =========\n\n");
+        builder.append("\n");
+        builder.append("========== ONLINE USERS ==========\n");
 
         int count = 1;
 
@@ -101,12 +131,13 @@ public class ChatServer {
 
             for (ClientHandler client : clients) {
 
-                if (client.getUsername() != null) {
+                if (client.getUsername() != null &&
+                        !client.getUsername().isBlank()) {
 
-                    users.append(count++)
-                        .append(". ")
-                        .append(client.getUsername())
-                        .append("\n");
+                    builder.append(count++)
+                            .append(". ")
+                            .append(client.getUsername())
+                            .append("\n");
 
                 }
 
@@ -114,19 +145,27 @@ public class ChatServer {
 
         }
 
-        users.append("\n===============================\n");
+        builder.append("==================================");
 
-        return users.toString();
+        return builder.toString();
 
     }
+
+    /*
+     * Find client using username
+     */
     public static ClientHandler findClient(String username) {
 
         synchronized (clients) {
 
             for (ClientHandler client : clients) {
 
-                if (client.getUsername() != null &&
-                    client.getUsername().equalsIgnoreCase(username)) {
+                if (client.getUsername() == null) {
+                    continue;
+                }
+
+                if (client.getUsername()
+                        .equalsIgnoreCase(username)) {
 
                     return client;
 
@@ -139,14 +178,22 @@ public class ChatServer {
         return null;
 
     }
+
+    /*
+     * Check duplicate username
+     */
     public static boolean usernameExists(String username) {
 
         synchronized (clients) {
 
             for (ClientHandler client : clients) {
 
-                if (client.getUsername() != null &&
-                    client.getUsername().equalsIgnoreCase(username)) {
+                if (client.getUsername() == null) {
+                    continue;
+                }
+
+                if (client.getUsername()
+                        .equalsIgnoreCase(username)) {
 
                     return true;
 
@@ -157,6 +204,15 @@ public class ChatServer {
         }
 
         return false;
+
+    }
+
+    /*
+     * Number of connected clients
+     */
+    public static int getClientCount() {
+
+        return clients.size();
 
     }
 
