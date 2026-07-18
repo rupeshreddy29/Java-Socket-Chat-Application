@@ -92,11 +92,35 @@ java -cp out com.chatapp.gui.LoginWindow
 
 ---
 
-# 📸 Screenshots
+# 📸 Application Screenshots
 
-Screenshots will be added soon.
+## Login Window
+
+![Login Window](screenshots/login-window.png)
 
 ---
+
+## Public Chat
+
+![Public Chat](screenshots/public-chat.png)
+
+---
+
+## Private Messaging
+
+![Private Chat](screenshots/private-chat.png)
+
+---
+
+## Online Users
+
+![Online Users](screenshots/online-users.png)
+
+---
+
+## Server Console
+
+![Server Console](screenshots/server-console.png)
 
 # 📈 Future Enhancements
 
