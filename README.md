@@ -89,6 +89,11 @@ Java-Socket-Chat-Application
 └── .gitignore
 ```
 
+# 🎥 Project Demo
+
+Watch the application in action:
+
+[▶️ Watch Demo Video](demo/chat-demo.mp4)
 ---
 
 # 🚀 Features Demonstrated
