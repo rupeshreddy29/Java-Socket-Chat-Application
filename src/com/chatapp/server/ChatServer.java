@@ -207,6 +207,39 @@ public class ChatServer {
 
     }
 
+    public static void broadcastUserList() {
+
+        StringBuilder sb = new StringBuilder("USERS:");
+
+        synchronized (clients) {
+
+            for (ClientHandler client : clients) {
+
+                if (client.getUsername() != null &&
+                    !client.getUsername().isEmpty()) {
+
+                    sb.append(client.getUsername()).append(",");
+
+                }
+
+            }
+
+        }
+
+        String users = sb.toString();
+
+        synchronized (clients) {
+
+            for (ClientHandler client : clients) {
+
+                client.send(users);
+
+            }
+
+        }
+
+    }
+
     /*
      * Number of connected clients
      */

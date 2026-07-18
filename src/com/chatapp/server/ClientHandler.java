@@ -84,6 +84,8 @@ public class ClientHandler implements Runnable {
             );
             ChatServer.addClient(this);
 
+            ChatServer.broadcastUserList();
+
             ChatLogger.log(username + " joined the chat.");
 
             writer.println(
@@ -222,6 +224,8 @@ public class ClientHandler implements Runnable {
 
             ChatServer.removeClient(this);
 
+            ChatServer.broadcastUserList();
+
             if (username != null) {
 
                 ChatLogger.log(
@@ -267,6 +271,14 @@ public class ClientHandler implements Runnable {
 
         }
 
+    }
+    public void send(String message) {
+
+        if (writer != null) {
+
+                writer.println(message);
+
+        }
     }
 
     public String getUsername() {
